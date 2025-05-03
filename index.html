@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Soreva</title>
+    <link rel="icon" type="image/png" href="soreva_icon_fullsize_logo.png" />
+
+    <style>
+      /* ─────────── Root & Reset ─────────── */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+      :root {
+        --c-bg: #151413;
+        --c-ink: #eee9e4;
+        --time: 300ms;
+      }
+      html,
+      body {
+        height: 100%;
+        scroll-behavior: smooth;
+        background: var(--c-bg);
+        color: var(--c-ink);
+      }
+
+      /* architectural grid overlay (purely decorative) */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+            0deg,
+            transparent 0 97px,
+            rgba(245, 246, 250, 0.04) 98px 99px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            transparent 0 97px,
+            rgba(245, 246, 250, 0.04) 98px 99px
+          );
+        pointer-events: none;
+        z-index: 0;
+        /* Animate the grid diagonally, infinitely, without resetting */
+        animation: grid-diagonal-move 9s linear infinite;
+      }
+
+      @keyframes grid-diagonal-move {
+        0% {
+          background-position: 0px 0px, 0px 0px;
+        }
+        100% {
+          background-position: 100px 100px, 100px 100px;
+        }
+      }
+
+      /* helper classes */
+      .container {
+        width: min(1200px, 90%);
+        margin-inline: auto;
+        position: relative;
+        z-index: 1;
+      }
+      .reveal {
+        animation: scrollAppear linear;
+        animation-timeline: view();
+        animation-range: entry 0% cover 20%;
+      }
+
+      @keyframes scrollAppear {
+        from {
+          transform: scale(0.99);
+          opacity: 0;
+          filter: blur(10px);
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+          filter: blur(0);
+        }
+      }
+
+      /* ─────────── Navigation ─────────── */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--c-bg);
+        border-bottom: 1px solid rgba(245, 246, 250, 0.1);
+        padding-inline: 5%;
+        z-index: 10;
+      }
+      nav .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        font-family: monospace;
+        color: #fff;
+        text-decoration: none;
+      }
+      nav .logo:hover,
+      nav .logo:focus {
+        color: #fff;
+        text-decoration: none;
+      }
+      nav a.btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--c-ink);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: background var(--time), color var(--time);
+        color: var(--c-ink);
+        border-radius: 50px;
+        font-family: monospace;
+      }
+      nav a.btn:hover {
+        background: var(--c-ink);
+        color: var(--c-bg);
+      }
+
+      /* ─────────── Hero ─────────── */
+      .hero {
+        /* full viewport minus fixed-nav height minus 2 rem breathing room */
+        min-height: calc(90vh - 64px - 2rem);
+        display: flex;
+        align-items: center;
+      }
+      .hero h1 {
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        margin-top: 6.5rem;
+        max-width: 24ch;
+        font-family: monospace;
+      }
+      .hero p {
+        font-size: 1.1rem;
+        max-width: 40ch;
+        margin-bottom: 2.5rem;
+        color: #cfcfcf;
+      }
+      .hero .cta {
+        display: inline-block;
+        padding: 1rem 2rem;
+        border: 1px solid var(--c-ink);
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background var(--time), color var(--time);
+        color: var(--c-ink);
+        font-family: monospace;
+        font-size: 1rem;
+      }
+      .hero .cta:hover {
+        background: var(--c-ink);
+        color: var(--c-bg);
+      }
+
+      /* ─────────── Divider ─────────── */
+      .divider {
+        width: 100%;
+        height: 2px; /* thicker line              */
+        background: rgba(245, 246, 250, 0.25); /* darker                    */
+        margin: 3rem 0; /* tighter vertical spacing  */
+      }
+
+      /* ─────────── Features grid ─────────── */
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 3rem;
+        margin-top: 4rem;
+      }
+
+      .features h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        font-family: monospace;
+      }
+      .features p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        color: #b4b4b4;
+      }
+
+      .features .feature-bold {
+        color: #fff;
+      }
+
+      /* ─────────── Timeline / Process ─────────── */
+      /* ─────────── Process / Timeline (patched) ─────────── */
+      .process {
+        display: flex;
+        flex-direction: column;
+        gap: 4rem; /* vertical distance between steps */
+        margin-top: 3rem;
+        --step-gap: 4rem; /* expose same gap for connector math */
+        transition: height 0.35s;
+        will-change: height;
+      }
+      .step {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding-left: 40px; /* keeps text clear of the dot & connector */
+      }
+      /* DOT */
+      .step::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--c-ink);
+        border-radius: 50%;
+        background: var(--c-bg);
+        z-index: 1;
+      }
+      /* CONNECTOR – every step except the last */
+      .step:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        left: 13px; /* center under 28px-wide dot minus 1px half connector */
+        top: 28px; /* bottom edge of the dot (24px + 2px border) */
+        width: 2px;
+        /* from this dot bottom to the next dot's center */
+        height: calc(100% + var(--step-gap) - 14px);
+        background: var(--c-ink);
+      }
+      .step h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+      }
+      .step p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        max-width: 45ch;
+        color: #d0d0d0;
+      }
+
+      /* ─────────── Form ─────────── */
+      form {
+        display: grid;
+        gap: 0.7rem;
+        margin-top: 2rem;
+        /* Glassmorphism effect */
+        background: rgba(35, 38, 43, 0.55); /* semi-transparent dark */
+        backdrop-filter: blur(12px) saturate(140%);
+        -webkit-backdrop-filter: blur(12px) saturate(140%);
+        border: 1.5px solid rgba(255, 255, 255, 0.18); /* soft border */
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18),
+          0 2px 16px 0 rgba(0, 0, 0, 0.1); /* gentle shadow */
+        border-radius: 20px; /* more rounded corners */
+        padding: 2rem 1.5rem;
+        padding-bottom: 1.1rem;
+      }
+      form input,
+      form textarea {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid rgba(245, 246, 250, 0.25);
+        background: var(--c-bg);
+        color: var(--c-ink);
+        font-size: 0.95rem;
+        border-radius: 7px;
+      }
+      /* Custom form error styles */
+      form input.error,
+      form textarea.error {
+        border-color: #ff4d4f;
+      }
+      form label {
+        margin-top: 1.1rem;
+        margin-bottom: 0.15rem;
+        font-size: 1.2em;
+        font-weight: 500;
+        font-family: monospace;
+      }
+      form label:first-child {
+        margin-top: 0;
+      }
+      form input:focus,
+      form textarea:focus {
+        outline: 1px solid var(--c-ink);
+      }
+      form button {
+        padding: 1rem 2rem;
+        border: 1px solid var(--c-ink);
+        background: var(--c-bg);
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background var(--time);
+        color: var(--c-ink);
+        border-radius: 7px;
+      }
+      form button:hover {
+        background: var(--c-ink);
+        color: var(--c-bg);
+      }
+      form textarea {
+        min-height: 110px;
+        resize: vertical;
+      }
+
+      /* ─────────── Footer ─────────── */
+      footer {
+        border-top: 1px solid rgba(245, 246, 250, 0.1);
+        padding: 3rem 0;
+        margin-top: 6rem;
+        font-size: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      footer a {
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+      }
+      footer a:hover {
+        border-color: var(--c-ink);
+      }
+      .highlight-number {
+        color: #fff;
+        font-weight: bold;
+        font-size: 1.1em;
+        letter-spacing: -0.5px;
+        text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+        position: relative;
+      }
+      .highlight-number:hover {
+        cursor: pointer;
+      }
+      .highlight-number::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -3px;
+        width: 100%;
+        height: 2px;
+        background: #ff8324;
+        transform: scaleX(0);
+        transform-origin: left;
+        animation: underline 2s infinite;
+      }
+
+      @keyframes underline {
+        0% {
+          transform: scaleX(0);
+          transform-origin: left;
+        }
+        50% {
+          transform: scaleX(1);
+          transform-origin: left;
+        }
+        51% {
+          transform: scaleX(1);
+          transform-origin: right;
+        }
+        100% {
+          transform: scaleX(0);
+          transform-origin: right;
+        }
+      }
+
+      /* ─────────── Small-screen nav button tweak ─────────── */
+      @media (max-width: 480px) {
+        nav a.btn {
+          padding: 0.4rem 0.8rem;
+        }
+      }
+
+      /* ─────────── Switch Styles ─────────── */
+      .switch-toggle {
+        position: relative;
+        display: inline-flex;
+        background: #4043445f;
+        opacity: 0.9;
+        border-radius: 999px;
+        padding: 4px;
+        gap: 2px;
+        margin-bottom: 0.5rem;
+        user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+      }
+      .switch-handle {
+        position: absolute;
+        top: 4px;
+        left: 0;
+        width: 0;
+        height: calc(100% - 8px);
+        background: #585c606f;
+        border-radius: 999px;
+        transition: left 0.2s, width 0.2s;
+        pointer-events: none;
+      }
+      .switch-btn {
+        position: relative;
+        z-index: 1;
+        border: none;
+        background: transparent;
+        color: #f5f6fa;
+        padding: 0.5rem 1.5rem;
+        border-radius: 999px;
+        font-size: 1rem;
+        font-family: monospace;
+        cursor: pointer;
+        transition: color 0.2s;
+        outline: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        box-shadow: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .switch-btn:focus,
+      .switch-btn:focus-visible,
+      .switch-btn:active {
+        outline: none !important;
+        box-shadow: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+      }
+      .switch-btn.active {
+        color: #fff;
+        font-weight: bold;
+      }
+
+      /* Add after .switch-btn.active for fade animation */
+      .step .reveal {
+        transition: opacity 0.35s;
+        opacity: 1;
+      }
+      .step .reveal.fading {
+        opacity: 0;
+      }
+
+      /* Add after .step .reveal.fading for timeline fade */
+      .step.fading::before,
+      .step.fading::after {
+        opacity: 0;
+        transition: opacity 0.35s;
+      }
+      .step::before,
+      .step::after {
+        transition: opacity 0.35s;
+      }
+
+      /* Shake animation */
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        50% {
+          transform: translateX(5px);
+        }
+        75% {
+          transform: translateX(-3px);
+        }
+      }
+      .shake {
+        animation: shake 0.3s ease-in-out;
+      }
+
+      /* ─────────── Tooltip Styles ─────────── */
+      .tooltip-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(18, 20, 21, 0.1); /* Subtle dark overlay */
+        backdrop-filter: blur(2px); /* Slight blur */
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity var(--time) ease, visibility 0s var(--time) linear,
+          backdrop-filter var(--time) ease;
+        pointer-events: none; /* Allows clicks through */
+        z-index: 15; /* Below toast, above most content */
+      }
+      .tooltip-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0s;
+      }
+      .tooltip-card {
+        position: fixed;
+        background: #2a2d2f; /* Slightly lighter dark */
+        color: var(--c-ink);
+        padding: 0.8rem 1.2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        z-index: 16; /* Above backdrop */
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.95);
+        transition: opacity 0.15s ease, visibility 0s 0.15s linear,
+          transform 0.15s ease;
+        pointer-events: none; /* Doesn't interfere with cursor */
+        font-size: 0.9rem;
+        max-width: 250px;
+        line-height: 1.4;
+        /* Position will be set by JS */
+      }
+      .tooltip-card.show {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1);
+        transition-delay: 0s;
+      }
+      .tooltip-title {
+        font-weight: 600;
+        font-family: monospace;
+        margin-bottom: 0.4rem;
+        font-size: 0.95rem;
+        color: #ccc; /* Slightly dimmer title */
+      }
+
+      /* ─────────── Toast & Backdrop ─────────── */
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(18, 20, 21, 0.7); /* Semi-transparent dark */
+        backdrop-filter: blur(5px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity var(--time) ease, visibility 0s var(--time) linear;
+        z-index: 19;
+      }
+      .backdrop.show {
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0s;
+      }
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translate(-50%, 100px);
+        background: linear-gradient(145deg, #25282a, #1e2022);
+        color: var(--c-ink);
+        padding: 0.9rem 2rem;
+        border-radius: 50px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+        z-index: 20;
+        opacity: 0;
+        visibility: hidden;
+        transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+          opacity 0.25s ease, visibility 0s 0.25s linear;
+        font-family: monospace;
+        text-align: center;
+        min-width: 300px;
+      }
+      .toast.show {
+        transform: translate(-50%, 0);
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0s;
+      }
+      /* Add specific style for error toast */
+      #errorToastNotification {
+        border: 2px solid #ff4d4f; /* Red border for error */
+        /* Optional: Slightly different background/color if needed */
+        /* background: linear-gradient(145deg, #4d3a3a, #3c2f2f); */
+      }
+      .calendly-btn {
+        color: var(--c-ink);
+        background: transparent;
+      }
+      .calendly-btn:hover {
+        background: var(--c-ink);
+        color: var(--c-bg);
+      }
+      #toastNotification {
+        border: 2px solid #2ecc40; /* Green border for success */
+      }
+      .cta-mobile {
+        display: none;
+      }
+      .cta-desktop,
+      .cta-mobile {
+        font-family: monospace;
+      }
+      @media (max-width: 480px) {
+        nav a.btn {
+          padding: 0.4rem 0.8rem;
+        }
+        .cta-desktop {
+          display: none;
+        }
+        .cta-mobile {
+          display: inline;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <a id="top"></a>
+    <!-- ░░░ Navigation ░░░ -->
+    <nav>
+      <a href="#top" class="logo">
+        <img
+          src="Soreva.png"
+          alt="Soreva Logo"
+          style="height: 45px; vertical-align: middle"
+        />
+        Soreva
+      </a>
+      <a href="#apply" class="btn">
+        <span class="cta-desktop">Boost My Conversions Now</span>
+        <span class="cta-mobile">Convert More</span>
+      </a>
+    </nav>
+
+    <!-- ░░░ Hero ░░░ -->
+    <section class="hero container">
+      <div class="reveal">
+        <h1>Reply in 60 seconds,<br />Close 3x more.</h1>
+        <p>
+          Our automations respond to new leads instantly, personalize every
+          message, and boost your
+          <span style="font-weight: bold; color: #ffffff">conversion rate</span>
+          by up to
+          <span class="highlight-number"
+            >391%<sup style="font-size: 0.5em; margin-left: 0.2em">↗</sup></span
+          >
+        </p>
+        <a href="#apply" class="cta">Boost My Conversions Now</a>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ░░░ Features ░░░ -->
+    <section class="container">
+      <h2
+        class="reveal"
+        style="font-size: 1.8rem; margin-bottom: 2.5rem; font-family: monospace"
+      >
+        What You Get Instantly
+      </h2>
+
+      <div class="features">
+        <div class="reveal">
+          <h3>+391% Conversion Rate</h3>
+          <p>
+            Studies show that personalized follow-ups sent
+            <span class="feature-bold">within 1 minute</span> of form submission
+            can boost conversion rates by up to
+            <span class="feature-bold">391%</span>.
+          </p>
+        </div>
+        <div class="reveal">
+          <h3>AI-Powered</h3>
+          <p>
+            Each follow-up is written based on what the lead actually said, so
+            it <span class="feature-bold">feels personal and human.</span>
+          </p>
+        </div>
+
+        <div class="reveal">
+          <h3>Works With Your Tools</h3>
+          <p>
+            We integrate directly with your existing sales stack — no new
+            dashboards to learn,
+            <span class="feature-bold">no extra clicks</span> for your team.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider reveal"></div>
+
+    <!-- ░░░ Process ░░░ -->
+    <section class="container">
+      <h2
+        class="reveal"
+        style="font-size: 1.8rem; margin-bottom: 2.5rem; font-family: monospace"
+      >
+        How&nbsp;It&nbsp;Works
+      </h2>
+      <div class="switch-toggle reveal">
+        <div class="switch-handle"></div>
+        <button id="switch-for-leads" class="switch-btn active">
+          For your leads
+        </button>
+        <button id="switch-for-you" class="switch-btn">For you</button>
+      </div>
+      <div class="process">
+        <div class="step">
+          <div></div>
+          <div class="reveal">
+            <h4>1. We review your current setup</h4>
+            <p>
+              We check the tools you're using to see how everything connects and
+              where the automation fits in.
+            </p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div></div>
+          <div class="reveal">
+            <h4>2. We build your automation system</h4>
+            <p>
+              We create a custom setup that automatically replies to new leads
+              with natural, human-like messages.
+            </p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div></div>
+          <div class="reveal">
+            <h4>3. We integrate and optimize</h4>
+            <p>
+              We connect it all to your existing tools and fine-tune it to
+              increase reply rates and conversions.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider reveal" id="apply"></div>
+
+    <!-- ░░░ Application Form ░░░ -->
+    <section class="container">
+      <h2
+        class="reveal"
+        style="font-size: 1.8rem; margin-bottom: 1rem; font-family: monospace"
+      >
+        Apply to Work With Us
+      </h2>
+      <a
+        href="https://calendly.com/soreva/30min"
+        target="_blank"
+        rel="noopener"
+        class="cta reveal calendly-btn"
+        style="
+          display: inline-block;
+          margin-bottom: 0.2rem;
+          margin-top: 0;
+          font-family: monospace;
+          font-size: 1.05rem;
+          font-weight: 600;
+          border-radius: 7px;
+          border: 1px solid var(--c-ink);
+          padding: 0.7rem 1.5rem;
+          text-align: center;
+          text-decoration: none;
+          transition: background var(--time), color var(--time);
+        "
+      >
+        Or directly book a call with us
+      </a>
+
+      <form class="reveal" action="#" method="post" novalidate>
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Name" required />
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Email"
+          required
+        />
+        <label for="company">Company</label>
+        <input
+          type="text"
+          id="company"
+          name="company"
+          placeholder="Company"
+          required
+        />
+        <label for="website">Website (optional)</label>
+        <input type="url" id="website" name="website" placeholder="Website" />
+        <label for="message">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          placeholder="Briefly describe what you're looking for"
+          required
+        ></textarea>
+        <button style="font-family: monospace" type="submit">
+          Submit Application
+        </button>
+        <p
+          style="
+            font-size: 0.85rem;
+            color: #aaa;
+            text-align: center;
+            margin-top: 0.5rem;
+          "
+        >
+          Someone will reply fast. Whether they're human… is another question
+        </p>
+      </form>
+    </section>
+
+    <!-- ░░░ Footer ░░░ -->
+    <footer class="container">
+      <span>© 2025 Soreva Automation Agency. All rights reserved.</span>
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1.2rem;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+          font-family: monospace;
+          color: #fff;
+          user-select: none;
+          -webkit-user-select: none;
+          -ms-user-select: none;
+        "
+      >
+        <img
+          src="Soreva.png"
+          alt="Soreva Logo"
+          style="height: 45px; vertical-align: middle"
+        />
+        Soreva
+      </div>
+    </footer>
+
+    <!-- Tooltip & Backdrop -->
+    <div class="tooltip-backdrop" id="tooltipBackdrop"></div>
+    <div class="tooltip-card" id="tooltipCard">
+      <div class="tooltip-title">Velocify/Leads360 survey</div>
+      <div class="tooltip-text">
+        Responding in the first minute raised conversions by 391  %
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="backdrop" id="toastBackdrop"></div>
+    <div class="toast" id="toastNotification">
+      Successfully sent, we will reply soon.
+    </div>
+    <div class="toast" id="errorToastNotification">
+      Submission failed. Please try again.
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const forYouBtn = document.getElementById("switch-for-you");
+        const forLeadsBtn = document.getElementById("switch-for-leads");
+        const switchHandle = document.querySelector(".switch-handle");
+        const steps = document.querySelectorAll(".process .step");
+        const process = document.querySelector(".process");
+
+        // Store original text
+        const original = [
+          {
+            h4: "1. We review your current setup",
+            p: "We check the tools you're using to see how everything connects and where the automation fits in.",
+          },
+          {
+            h4: "2. We build your automation system",
+            p: "We create a custom setup that automatically replies to new leads with natural, human-like messages.",
+          },
+          {
+            h4: "3. We integrate and optimize",
+            p: "We connect it all to your existing tools and fine-tune it to increase reply rates and conversions.",
+          },
+        ];
+        // Placeholder for leads
+        const leads = [
+          {
+            h4: "1. They fill out your form",
+            p: "A potential client fills out your form — from ads, referrals, organic, wherever.",
+          },
+          {
+            h4: "2. AI replies in 1 minute",
+            p: "They get a fast, human-sounding message that thanks them and invites them to do a desired action.",
+          },
+          {
+            h4: "3. AI handles replies & converts",
+            p: "If they respond or ask questions, the AI keeps the conversation going — always guiding them to take the next step.",
+          },
+        ];
+
+        // Helper to get height for a given data set
+        function getStepsHeight(data) {
+          const clone = process.cloneNode(true);
+          clone.style.visibility = "hidden";
+          clone.style.position = "absolute";
+          clone.style.pointerEvents = "none";
+          document.body.appendChild(clone);
+          const cloneSteps = clone.querySelectorAll(".step");
+          cloneSteps.forEach((step, i) => {
+            const h4 = step.querySelector("h4");
+            const p = step.querySelector("p");
+            h4.innerHTML = data[i].h4;
+            p.innerHTML = data[i].p;
+          });
+          const height = clone.offsetHeight;
+          document.body.removeChild(clone);
+          return height;
+        }
+
+        // Calculate max height for both sets
+        const maxHeight = Math.max(
+          getStepsHeight(original),
+          getStepsHeight(leads)
+        );
+        process.style.height = maxHeight + "px";
+
+        function setStepsSmooth(data) {
+          steps.forEach((step, i) => {
+            const reveal = step.querySelector(".reveal");
+            reveal.classList.add("fading");
+            step.classList.add("fading");
+          });
+
+          setTimeout(() => {
+            steps.forEach((step, i) => {
+              const reveal = step.querySelector(".reveal");
+              const h4 = step.querySelector("h4");
+              const p = step.querySelector("p");
+              h4.innerHTML = data[i].h4;
+              p.innerHTML = data[i].p;
+              reveal.classList.remove("fading");
+              step.classList.remove("fading");
+            });
+          }, 350); // match the CSS transition duration
+        }
+
+        // handle movement
+        function moveHandle(btn) {
+          switchHandle.style.width = btn.offsetWidth + "px";
+          switchHandle.style.left = btn.offsetLeft + "px";
+        }
+
+        // initialize handle position
+        moveHandle(forLeadsBtn);
+        setStepsSmooth(leads);
+
+        forYouBtn.addEventListener("click", function () {
+          forYouBtn.classList.add("active");
+          forLeadsBtn.classList.remove("active");
+          setStepsSmooth(original);
+          moveHandle(forYouBtn);
+        });
+        forLeadsBtn.addEventListener("click", function () {
+          forLeadsBtn.classList.add("active");
+          forYouBtn.classList.remove("active");
+          setStepsSmooth(leads);
+          moveHandle(forLeadsBtn);
+        });
+
+        // Custom form validation: highlight empty required fields and prevent submission
+        const form = document.querySelector("form");
+        const successToast = document.getElementById("toastNotification");
+        const errorToast = document.getElementById("errorToastNotification"); // Get error toast
+        const backdrop = document.getElementById("toastBackdrop");
+
+        if (form) {
+          form.addEventListener("submit", function (e) {
+            e.preventDefault(); // Prevent default submission ALWAYS
+            let hasError = false;
+            const fields = this.querySelectorAll("input, textarea");
+
+            fields.forEach((field) => {
+              // Reset error state
+              field.classList.remove("error");
+              // Check required fields
+              if (field.required && !field.value.trim()) {
+                hasError = true;
+                field.classList.add("error");
+                // Add shake animation
+                field.classList.add("shake");
+                setTimeout(() => field.classList.remove("shake"), 300); // Remove after animation
+              }
+              // Additionally, validate email format if it's the email field
+              else if (
+                field.id === "email" &&
+                field.value.trim() &&
+                !validateEmail(field.value.trim())
+              ) {
+                hasError = true;
+                field.classList.add("error");
+                // Add shake animation
+                field.classList.add("shake");
+                setTimeout(() => field.classList.remove("shake"), 300); // Remove after animation
+              }
+            });
+
+            if (hasError) {
+              // If validation fails, stop here
+              return;
+            }
+
+            // Validation passed, proceed with fetch
+            const formData = new FormData(form);
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = "Submitting...";
+
+            fetch("https://louis-leb.app.n8n.cloud/webhook/post-form", {
+              method: "POST",
+              body: formData,
+            })
+              .then((response) => {
+                if (!response.ok) {
+                  // Handle HTTP errors (e.g., 4xx, 5xx)
+                  throw new Error(
+                    `Network response was not ok: ${response.statusText}`
+                  );
+                }
+                return response.text(); // or response.json() if webhook returns JSON
+              })
+              .then((data) => {
+                console.log("Success:", data);
+                form.reset(); // Clear the form
+
+                // Show success toast and backdrop
+                successToast.classList.add("show");
+                backdrop.classList.add("show");
+
+                // Hide success toast and backdrop after 2 seconds
+                setTimeout(() => {
+                  successToast.classList.remove("show");
+                  backdrop.classList.remove("show");
+                }, 2000);
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                // Show error toast and backdrop
+                errorToast.classList.add("show");
+                backdrop.classList.add("show");
+
+                // Hide error toast and backdrop after a delay (e.g., 3.5 seconds)
+                setTimeout(() => {
+                  errorToast.classList.remove("show");
+                  backdrop.classList.remove("show");
+                }, 1200);
+              })
+              .finally(() => {
+                // Re-enable button and restore text regardless of success/failure
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+              });
+          });
+
+          // Remove error class on input (existing logic)
+          const fields = form.querySelectorAll("input, textarea");
+          fields.forEach((field) => {
+            field.addEventListener("input", function () {
+              if (this.value.trim()) {
+                this.classList.remove("error");
+              }
+            });
+          });
+        }
+
+        // Helper function for email validation
+        function validateEmail(email) {
+          const re =
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          return re.test(String(email).toLowerCase());
+        }
+
+        // Tooltip interaction logic
+        const highlightSpan = document.querySelector(".hero .highlight-number"); // Target only hero span
+        const tooltipCard = document.getElementById("tooltipCard");
+        const tooltipBackdrop = document.getElementById("tooltipBackdrop");
+        let isTooltipActive = false;
+
+        function positionStaticTooltip() {
+          if (!highlightSpan || !tooltipCard) return;
+
+          const spanRect = highlightSpan.getBoundingClientRect();
+          const cardRect = tooltipCard.getBoundingClientRect(); // Get card dimensions
+
+          // Calculate position: Center tooltip horizontally above the span
+          const top = spanRect.top - cardRect.height - 10; // 10px gap above
+          const left = spanRect.left + spanRect.width / 2 - cardRect.width / 2;
+
+          tooltipCard.style.left = `${left}px`;
+          tooltipCard.style.top = `${top}px`;
+
+          // Reset transform origin for cleaner scaling animation from the static position
+          tooltipCard.style.transformOrigin = "bottom center";
+        }
+
+        // Function to hide tooltip and remove mobile listeners
+        const hideMobileTooltip = () => {
+          if (!isTooltipActive) return;
+          tooltipCard.style.transform = ""; // Clear inline transform
+          isTooltipActive = false;
+          tooltipBackdrop.classList.remove("show");
+          tooltipCard.classList.remove("show");
+          document.removeEventListener("touchstart", handleOutsideTouch, {
+            capture: true,
+          });
+          window.removeEventListener("scroll", hideMobileTooltip, {
+            once: true,
+          });
+        };
+
+        // Function to handle taps outside the trigger element on mobile
+        const handleOutsideTouch = (e) => {
+          if (!highlightSpan.contains(e.target)) {
+            hideMobileTooltip();
+          }
+        };
+
+        if (highlightSpan && tooltipCard && tooltipBackdrop) {
+          // DESKTOP hover behavior (now for any device that supports hover)
+          highlightSpan.addEventListener("mouseenter", (e) => {
+            // Only show on hover-capable devices
+            if (!window.matchMedia("(hover: hover)").matches) return;
+            tooltipCard.style.transform = ""; // Clear any inline mobile transform
+            isTooltipActive = true;
+            tooltipBackdrop.classList.add("show");
+            tooltipCard.classList.add("show");
+            // Position the tooltip statically
+            positionStaticTooltip();
+            // Add scroll listener to hide tooltip on scroll
+            window.addEventListener("scroll", hideDesktopTooltipOnScroll, {
+              once: true,
+            });
+          });
+
+          highlightSpan.addEventListener("mouseleave", () => {
+            if (!window.matchMedia("(hover: hover)").matches) return;
+            // Hide tooltip and remove scroll listener
+            hideDesktopTooltip();
+          });
+
+          // MOBILE touch behavior
+          highlightSpan.addEventListener("touchstart", (e) => {
+            if (!window.matchMedia("(max-width: 768px)").matches) return; // Only on mobile
+            if (isTooltipActive) {
+              // If already active, touching the trigger again should hide it
+              hideMobileTooltip();
+              e.preventDefault(); // Prevent potential double trigger / link follow
+              return;
+            }
+
+            isTooltipActive = true;
+            tooltipCard.style.left = "50%";
+            tooltipCard.style.top = "50%";
+            tooltipCard.style.transformOrigin = "center center"; // Ensure scale animates from center
+
+            // Apply translate for centering AND scale for animation via inline style
+            tooltipCard.style.transform = "translate(-50%, -50%) scale(1)";
+
+            tooltipBackdrop.classList.add("show");
+            tooltipCard.classList.add("show"); // Class adds opacity/visibility
+
+            // Add listeners to hide on outside tap or scroll
+            // Use setTimeout to avoid immediate trigger from the same touchstart
+            setTimeout(() => {
+              document.addEventListener("touchstart", handleOutsideTouch, {
+                capture: true,
+              });
+              window.addEventListener("scroll", hideMobileTooltip, {
+                once: true,
+              });
+            }, 0);
+
+            e.preventDefault(); // Prevent triggering mouseenter simulation
+          });
+        }
+
+        // Function to hide tooltip on desktop (mouseleave or scroll)
+        function hideDesktopTooltip() {
+          if (!isTooltipActive) return;
+          isTooltipActive = false;
+          tooltipCard.style.transform = ""; // Clear inline transform
+          tooltipBackdrop.classList.remove("show");
+          tooltipCard.classList.remove("show");
+          // Ensure scroll listener is removed
+          window.removeEventListener("scroll", hideDesktopTooltipOnScroll, {
+            once: true,
+          });
+        }
+
+        // Specific handler for scroll event on desktop
+        function hideDesktopTooltipOnScroll() {
+          hideDesktopTooltip();
+        }
+      });
+    </script>
+  </body>
+</html>
